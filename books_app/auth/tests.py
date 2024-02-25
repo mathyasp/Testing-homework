@@ -1,5 +1,7 @@
 import os
+import unittest
 from unittest import TestCase
+import app
 
 from datetime import date
  
@@ -56,9 +58,13 @@ class AuthTests(TestCase):
         # TODO: Write a test for the signup route. It should:
         # - Make a POST request to /signup, sending a username & password
         # - Check that the user now exists in the database
-        self.app.post('/signup', data=dict('me1', 'password'))
+        post_data = {
+            'username': 'test_user',
+            'password': 'test_password'
+        }
+        self.app.post('/signup', data=post_data)
 
-        user = User.query.filter_by(username='me1').one()
+        user = User.query.filter_by(username='test_user').one()
         self.assertIsNotNone(user)
 
     def test_signup_existing_user(self):
@@ -68,9 +74,12 @@ class AuthTests(TestCase):
         # - Check that the form is displayed again with an error message
         create_user()
 
-        self.app.post('/signup', data=dict('me1', 'password'))
+        post_data = {
+            'username': 'me1',
+            'password': 'password'
+        }
+        response = self.app.post('/signup', data=post_data)
 
-        response = self.app.get('/signup')
         self.assertIn(b'That username is taken. Please choose a different one.', response.data)
 
     def test_login_correct_password(self):
@@ -80,19 +89,23 @@ class AuthTests(TestCase):
         # - Check that the "login" button is not displayed on the homepage
         create_user()
 
-        self.app.post('/login', data=dict('me1', 'password'))
-
-        response = self.app.get('/')
-        self.assertNotIn(b'Login', response.data)
+        post_data = {
+            'username': 'me1',
+            'password': 'password'
+        }
+        response = self.app.post('/login', data=post_data) 
+        self.assertNotIn(b'login', response.data)
 
     def test_login_nonexistent_user(self):
         # TODO: Write a test for the login route. It should:
         # - Make a POST request to /login, sending a username & password
         # - Check that the login form is displayed again, with an appropriate
         #   error message
-        self.app.post('/login', data=dict('me1', 'password'))
-
-        response = self.app.get('/login')
+        post_data = {
+            'username': 'me1',
+            'password': 'password'
+        }
+        response = self.app.post('/login', data=post_data)
         self.assertIn(b'No user with that username. Please try again.', response.data)
 
     def test_login_incorrect_password(self):
@@ -104,10 +117,12 @@ class AuthTests(TestCase):
         #   error message
         create_user()
 
-        self.app.post('/login', data=dict('me1', 'test_password'))
-
-        response = self.app.get('/login')
-        self.assertIn(b"Password doesn't match. Please try again.", response.data)
+        post_data = {
+            'username': 'me1',
+            'password': 'test_password'
+        }
+        response = self.app.post('/login', data=post_data)
+        self.assertIn(b'Password doesn&#39;t match. Please try again.', response.data)
 
     def test_logout(self):
         # TODO: Write a test for the logout route. It should:
@@ -116,9 +131,12 @@ class AuthTests(TestCase):
         # - Make a GET request to /logout
         # - Check that the "login" button appears on the homepage
         create_user()
-        
-        self.app.post('/login', data=dict('me1', 'password'))
-        self.app.get('/logout')
 
-        response = self.app.get('/')
-        self.assertIn(b'Login', response.data)
+        post_data = {
+            'username': 'me1',
+            'password': 'test_password'
+        }
+        self.app.post('/login', data=post_data)
+
+        response = self.app.get('/logout')
+        self.assertIn(b'login', response.data)
